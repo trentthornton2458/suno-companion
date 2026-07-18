@@ -954,3 +954,294 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* ==========================================
+   Mobile Responsive Framework & Overrides
+   ========================================== */
+
+/* Page Header component */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+/* Main Layout under mobile views */
+.app-layout.mobile-layout {
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-layout.mobile-layout .main-content {
+  flex: 1;
+  padding: 1.25rem 1rem 2rem 1rem;
+  overflow-y: auto;
+  height: auto;
+}
+
+/* Mobile Top Header styling */
+.mobile-header {
+  height: 60px;
+  background: var(--bg-sidebar);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border-bottom: var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.mobile-header .logo-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mobile-header .logo-text span {
+  font-weight: 800;
+  background: linear-gradient(to right, var(--color-secondary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mobile-header .logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+}
+
+.mobile-header-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot.online {
+  background-color: var(--color-secondary);
+  box-shadow: 0 0 8px var(--color-secondary);
+}
+
+.status-dot.offline {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+}
+
+/* Mobile Bottom Navigation styling */
+.mobile-nav {
+  height: 68px;
+  background: var(--bg-sidebar);
+  backdrop-filter: var(--glass-blur) var(--glass-saturate);
+  border-top: var(--glass-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: content-box;
+  z-index: 100;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  gap: 4px;
+  flex: 1;
+  height: 100%;
+  transition: var(--transition-fast);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.mobile-nav-item svg {
+  width: 18px;
+  height: 18px;
+  transition: var(--transition-smooth);
+}
+
+.mobile-nav-item:active,
+.mobile-nav-item.active {
+  color: var(--text-primary);
+}
+
+.mobile-nav-item.active svg {
+  color: var(--color-secondary);
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.4));
+  transform: translateY(-2px);
+}
+
+/* Responsive grid definitions */
+.grid-2col-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.grid-explicit-control {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.grid-suno-generation {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+}
+
+.grid-active-generations {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.grid-song-fixer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.grid-style-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Mobile Media Queries (screens <= 768px) */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.75rem !important;
+    letter-spacing: -0.5px;
+  }
+  
+  .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Stack main page layouts */
+  .assistant-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    min-height: auto;
+  }
+
+  .analyzer-dashboard {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Grid component stacking */
+  .grid-2col-compact,
+  .grid-explicit-control,
+  .grid-suno-generation,
+  .grid-active-generations,
+  .grid-song-fixer {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+
+  .grid-suno-generation {
+    align-items: stretch;
+  }
+  
+  .grid-suno-generation input,
+  .grid-suno-generation select {
+    height: 42px;
+  }
+
+  /* Page headers flex wraps on mobile */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .page-header button {
+    width: 100%;
+  }
+
+  /* Wizard step header responsiveness */
+  .wizard-steps-header {
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .step-label {
+    display: none; /* Hide labels on mobile to save space */
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Waveform and player styling adjustments */
+  .waveform-container {
+    height: 60px;
+    gap: 2px;
+  }
+  
+  .waveform-bar {
+    width: 3px;
+  }
+}
+
+/* Extra small devices <= 480px */
+@media (max-width: 480px) {
+  .grid-style-form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .style-card {
+    padding: 1rem;
+  }
+}

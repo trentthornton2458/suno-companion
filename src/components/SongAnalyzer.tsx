@@ -370,7 +370,7 @@ export default function SongAnalyzer() {
       {analysisData && (
         <div>
           <div className="glass-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div className="page-header">
               <div>
                 <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.35rem' }}>{file?.name}</h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>File Decoded Successfully • {(file!.size / (1024 * 1024)).toFixed(2)} MB</p>
@@ -556,7 +556,7 @@ export default function SongAnalyzer() {
                   Paste your current lyrics and style prompt below. AI will revise them based on the diagnostics above to fix timing, style drift, and vocal delivery.
                 </p>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <div className="grid-song-fixer">
                   <div>
                     <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>Current Style Prompt</label>
                     <textarea 

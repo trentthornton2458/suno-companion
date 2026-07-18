@@ -150,7 +150,7 @@ export default function StyleManager({ onSelectStyle }: StyleManagerProps) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+      <div className="page-header">
         <div>
           <h1>Style Manager</h1>
           <p className="subtitle" style={{ marginBottom: 0 }}>Browse, design, and organize your prompt style presets.</p>
@@ -176,7 +176,7 @@ export default function StyleManager({ onSelectStyle }: StyleManagerProps) {
                 placeholder="e.g., Cyberpunk Industrial"
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="grid-style-form-row">
               <div className="input-group">
                 <label>Genre</label>
                 <input
