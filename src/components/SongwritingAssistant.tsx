@@ -622,7 +622,7 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <div className="grid-2-col" style={{ marginBottom: '0.75rem' }}>
               <div className="input-group">
                 <label style={{ fontSize: '0.75rem', marginBottom: '0.25rem', display: 'block' }}>Target Section</label>
                 <select 
@@ -654,7 +654,7 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', alignItems: 'center', marginBottom: '0.75rem', padding: '0.25rem 0' }}>
+            <div className="grid-1-2-col" style={{ marginBottom: '0.75rem', padding: '0.25rem 0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input 
                   type="checkbox" 
@@ -763,7 +763,7 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
         
         {showMusicGen && (
           <div style={{ marginTop: '1.5rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem', alignItems: 'end' }}>
+            <div className="suno-gen-row" style={{ marginBottom: '1.5rem' }}>
               <div className="input-group">
                 <label style={{ display: 'block', marginBottom: '0.35rem' }}>Song Title</label>
                 <input 
@@ -821,7 +821,7 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
             {generations.length > 0 && (
               <div style={{ marginTop: '2rem' }}>
                 <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--text-secondary)' }}>Generated Audio Clips</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="grid-2-col">
                   {generations.map((clip: any) => (
                     <div key={clip.id} className="glass-card" style={{ padding: '1rem', display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)' }}>
                       {clip.image_url ? (
