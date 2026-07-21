@@ -236,11 +236,12 @@ body {
   color: var(--text-primary);
 }
 
-/* Main Content Styling */
 .main-content {
   flex: 1;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
   padding: 2.5rem;
   position: relative;
   z-index: 2;
@@ -1182,7 +1183,8 @@ h1 {
   .grid-explicit-control,
   .grid-suno-generation,
   .grid-active-generations,
-  .grid-song-fixer {
+  .grid-song-fixer,
+  .grid-style-form-row {
     grid-template-columns: 1fr !important;
     gap: 1rem;
   }
@@ -1233,15 +1235,260 @@ h1 {
   .waveform-bar {
     width: 3px;
   }
+
+  .style-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Prevent mobile viewport auto-zoom on inputs */
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .lyrics-stats {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+  }
+
+  .lyrics-stats > div {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .lyrics-stats button {
+    flex: 1;
+  }
+}
+
+/* Preset tags horizontal scrolling container */
+.presets-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0.4rem 0;
+  margin-bottom: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.presets-row::-webkit-scrollbar {
+  display: none;
+}
+
+.preset-chip {
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.preset-chip:hover,
+.preset-chip:active {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
 }
 
 /* Extra small devices <= 480px */
 @media (max-width: 480px) {
-  .grid-style-form-row {
-    grid-template-columns: 1fr !important;
-  }
-
   .style-card {
     padding: 1rem;
   }
+
+  .options-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    gap: 0.5rem !important;
+  }
+}
+
+/* Sidebar mobile drawer overlay & animations */
+.sidebar.mobile-drawer {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  height: 100vh !important;
+  width: 280px !important;
+  max-width: 85vw;
+  z-index: 2000 !important;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8) !important;
+  border-right: var(--glass-border) !important;
+  background: rgba(10, 11, 20, 0.98) !important;
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  transform: translateX(0);
+  animation: slideInSidebar 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slideInSidebar {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1900;
+  animation: fadeInSidebarBackdrop 0.2s ease-out forwards;
+}
+
+@keyframes fadeInSidebarBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.menu-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  border-radius: 8px;
+  transition: var(--transition-fast);
+}
+
+.menu-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-secondary);
+}
+
+.close-sidebar-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  border-radius: 8px;
+  margin-left: auto;
+  transition: var(--transition-fast);
+}
+
+.close-sidebar-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+/* ==========================================
+   Lyric Meter & Rhyme Engine Styles
+   ========================================== */
+.meter-overlay-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 0.75rem;
+  max-height: 420px;
+  overflow-y: auto;
+  font-family: 'Space Grotesk', monospace;
+}
+
+.meter-line-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.meter-line-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.meter-line-row.is-tag {
+  background: rgba(0, 240, 255, 0.04);
+  border-left: 3px solid var(--color-secondary);
+}
+
+.meter-gutter {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 90px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.syllable-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+}
+
+.syllable-badge.imbalanced {
+  background: rgba(255, 150, 0, 0.2);
+  color: #ffaa00;
+  border: 1px solid rgba(255, 150, 0, 0.4);
+}
+
+.rhyme-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  color: #000;
+  text-transform: uppercase;
+}
+
+.meter-text-content {
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  flex: 1;
+  word-break: break-word;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.song-gen-modal {
+  width: 100%;
+  max-width: 540px;
+  background: var(--bg-card);
+  border: var(--glass-border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }

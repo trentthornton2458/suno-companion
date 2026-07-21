@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { analyzeLyricMeter } from '../utils/lyric-meter-utils';
 
 
 
@@ -56,6 +57,14 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
   const [explicitMode, setExplicitMode] = useState(false);
   const [explicitFrequency, setExplicitFrequency] = useState(50);
 
+  // Meter & Full Song Generator States
+  const [showMeterOverlay, setShowMeterOverlay] = useState(true);
+  const [showFullSongModal, setShowFullSongModal] = useState(false);
+  const [fullSongStructure, setFullSongStructure] = useState('Pop/Rock');
+  const [fullSongTopic, setFullSongTopic] = useState('');
+  const [fullSongSyllables, setFullSongSyllables] = useState(8);
+  const [generatingFullSong, setGeneratingFullSong] = useState(false);
+
   const [songTitle, setSongTitle] = useState('');
   const [sunoModel, setSunoModel] = useState('chirp-v3-5');
   const [makeInstrumental, setMakeInstrumental] = useState(false);
@@ -65,6 +74,14 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
   const [showMusicGen, setShowMusicGen] = useState(false);
 
   // Sync state if selected preset was passed from parent
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (initialStylePrompt) {
       setCustomPromptText(initialStylePrompt);
@@ -144,7 +161,10 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     try {
       const res = await fetch('/api/gemini/curate-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({
           rawDescription,
           bpm
@@ -170,7 +190,10 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     try {
       const res = await fetch('/api/gemini/lyric-helper', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({
           prompt: songTopic || 'Write a song',
           stylePrompt: customPromptText || stackedPrompt,
@@ -201,7 +224,10 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     try {
       const res = await fetch('/api/gemini/make-explicit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({
           lyrics,
           stylePrompt: customPromptText || stackedPrompt
@@ -227,7 +253,10 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     try {
       const res = await fetch('/api/gemini/analyze-lyrics', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({
           lyrics,
           stylePrompt: customPromptText || stackedPrompt
@@ -246,6 +275,41 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
       setIsAnalyzingLyrics(false);
     }
   };
+
+  const handleGenerateFullSong = async () => {
+    setGeneratingFullSong(true);
+    try {
+      const res = await fetch('/api/gemini/generate-full-song', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
+        body: JSON.stringify({
+          structure: fullSongStructure,
+          topic: fullSongTopic || songTopic || 'An emotional song narrative',
+          stylePrompt: customPromptText || stackedPrompt,
+          targetSyllables: fullSongSyllables,
+          explicitMode,
+          explicitFrequency
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.lyrics) {
+        setLyrics(data.lyrics);
+        setShowFullSongModal(false);
+      } else {
+        alert(data.error || 'Failed to generate full song lyrics.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to connect to full song generator.');
+    } finally {
+      setGeneratingFullSong(false);
+    }
+  };
+
+  const meterAnalysis = analyzeLyricMeter(lyrics);
 
   const handleGenerateSong = async () => {
     setGeneratingSong(true);
@@ -432,12 +496,33 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
 
         {/* Lyric Workspace (Right Panel) */}
         <div className="glass-card lyric-workspace">
-          <div className="workspace-header">
-            <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem' }}>Verse Lyric Workspace</h3>
-            <span style={{ fontSize: '0.75rem', background: 'rgba(0,240,255,0.1)', color: 'var(--color-secondary)', border: '1px solid rgba(0,240,255,0.2)', padding: '0.25rem 0.5rem', borderRadius: '6px', fontWeight: 600 }}>METATAG READY</span>
+          <div className="workspace-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem', margin: 0 }}>Lyric Workspace</h3>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Rhyme Scheme: <strong style={{ color: 'var(--color-secondary)' }}>{meterAnalysis.rhymeSchemeSummary}</strong> | Avg: <strong style={{ color: 'var(--color-secondary)' }}>{meterAnalysis.avgSyllablesPerLine} syl/line</strong>
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <button
+                className="btn-secondary"
+                style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', borderColor: showMeterOverlay ? 'var(--color-secondary)' : 'var(--border-light)' }}
+                onClick={() => setShowMeterOverlay(!showMeterOverlay)}
+                title="Toggle Real-time Line-by-Line Meter Gutter"
+              >
+                {showMeterOverlay ? '📊 Meter ON' : '📊 Meter OFF'}
+              </button>
+              <button
+                className="btn-primary"
+                style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))' }}
+                onClick={() => setShowFullSongModal(true)}
+              >
+                ✨ Generate Full Song
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', marginTop: '0.5rem' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Vocal Delivery Presets:</span>
             <button 
               style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -489,6 +574,38 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
             <button className="preset-chip" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-light)' }} title="Connect words for fast flow" onClick={() => insertPresetCode('-')}>-</button>
             <button className="preset-chip" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-light)' }} title="Insert flow break pause" onClick={() => insertPresetCode('\n\n')}>\n\n (Pause)</button>
           </div>
+
+          {showMeterOverlay && (
+            <div className="meter-overlay-container" style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.4rem', marginBottom: '0.25rem' }}>
+                <span>Line Breakdown & Rhyme Scheme</span>
+                <span>Syllables & Cadence</span>
+              </div>
+              {meterAnalysis.lines.map((line, idx) => (
+                <div key={idx} className={`meter-line-row ${line.isTag ? 'is-tag' : ''}`}>
+                  <div className="meter-gutter">
+                    {!line.isTag && line.syllables > 0 ? (
+                      <>
+                        <span className={`syllable-badge ${line.isImbalanced ? 'imbalanced' : ''}`} title={line.isImbalanced ? 'Line length deviates >35% from average' : ''}>
+                          {line.syllables} syl
+                        </span>
+                        {line.rhymeGroup && (
+                          <span className="rhyme-badge" style={{ backgroundColor: line.rhymeColor, color: '#000' }}>
+                            {line.rhymeGroup}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span style={{ fontSize: '0.7rem', color: 'var(--color-secondary)', fontWeight: 600 }}>Tag</span>
+                    )}
+                  </div>
+                  <div className="meter-text-content" style={{ color: line.isTag ? 'var(--color-secondary)' : 'var(--text-primary)', fontWeight: line.isTag ? 700 : 400 }}>
+                    {line.text || <span style={{ opacity: 0.3 }}>(empty line)</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="lyrics-editor">
             <textarea 
@@ -849,6 +966,87 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
           </div>
         )}
       </div>
+
+      {/* Full Multi-Section Song Generator Modal */}
+      {showFullSongModal && (
+        <div className="modal-backdrop" onClick={() => setShowFullSongModal(false)}>
+          <div className="song-gen-modal" onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem', margin: 0, color: 'var(--color-secondary)' }}>
+                ✨ Full Multi-Section Song Generator
+              </h3>
+              <button 
+                onClick={() => setShowFullSongModal(false)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.2rem' }}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Generate complete structured lyrics (Intro, Verses, Pre-Chorus, Chorus, Bridge, Outro) with target line-meter and Suno timing punctuation.
+            </p>
+
+            <div className="input-group">
+              <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block', color: 'white' }}>Structure Preset</label>
+              <select 
+                value={fullSongStructure} 
+                onChange={e => setFullSongStructure(e.target.value)}
+                style={{ background: 'var(--bg-dark)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '0.5rem', fontSize: '0.9rem', width: '100%' }}
+              >
+                <option value="Pop/Rock">Pop / Rock Standard ([Intro - V1 - PC - Chorus - V2 - PC - Chorus - Bridge - Chorus - Outro])</option>
+                <option value="Hip-Hop/Rap">Hip-Hop / Rap ([Intro - V1 - Chorus - V2 - Chorus - Fast Flow Bridge - Outro])</option>
+                <option value="Synthwave Ballad">Synthwave / Melancholic Ballad ([Intro - V1 - Chorus - V2 - Solo - Outro])</option>
+                <option value="EDM Anthem">EDM / Dance Anthem ([Intro - Build - Drop - V1 - Build - Drop - Outro])</option>
+                <option value="Acoustic Indie">Acoustic / Indie Folk ([Intro - V1 - Refrain - V2 - Refrain - Outro])</option>
+              </select>
+            </div>
+
+            <div className="input-group">
+              <label style={{ fontSize: '0.8rem', marginBottom: '0.25rem', display: 'block', color: 'white' }}>Song Theme / Story Concept</label>
+              <textarea 
+                value={fullSongTopic} 
+                onChange={e => setFullSongTopic(e.target.value)}
+                placeholder="e.g. A high-energy cyberpunk story about escaping a digital simulation under city lights."
+                rows={3}
+                style={{ background: 'var(--bg-dark)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '0.5rem', fontSize: '0.85rem', width: '100%', resize: 'vertical' }}
+              />
+            </div>
+
+            <div className="input-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                <label style={{ fontSize: '0.8rem', color: 'white' }}>Target Syllables Per Line</label>
+                <span style={{ fontSize: '0.8rem', color: 'var(--color-secondary)', fontWeight: 600 }}>{fullSongSyllables} syllables</span>
+              </div>
+              <input 
+                type="range" 
+                min={6} 
+                max={14} 
+                value={fullSongSyllables} 
+                onChange={e => setFullSongSyllables(Number(e.target.value))}
+                style={{ width: '100%', accentColor: 'var(--color-secondary)' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <button 
+                className="btn-primary" 
+                style={{ flex: 1, padding: '0.6rem' }}
+                onClick={handleGenerateFullSong}
+                disabled={generatingFullSong}
+              >
+                {generatingFullSong ? 'Generating Full Song...' : '🚀 Generate Complete Song'}
+              </button>
+              <button 
+                className="btn-secondary" 
+                onClick={() => setShowFullSongModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

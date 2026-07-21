@@ -24,12 +24,35 @@ let settings = {
   sunoCookie: process.env.SUNO_COOKIE || '',
 };
 
+// Helper to get effective Gemini Key from header, body, or settings
+const getEffectiveGeminiKey = (req: express.Request): string => {
+  const headerKey = req.headers['x-gemini-api-key'] as string;
+  const bodyKey = req.body?.geminiApiKey as string;
+  const effectiveKey = headerKey || bodyKey || settings.geminiApiKey || process.env.GEMINI_API_KEY || '';
+  if (effectiveKey && effectiveKey !== settings.geminiApiKey) {
+    settings.geminiApiKey = effectiveKey;
+  }
+  return effectiveKey;
+};
+
+// Helper to get effective Suno Cookie from header, body, or settings
+const getEffectiveSunoCookie = (req: express.Request): string => {
+  const headerCookie = req.headers['x-suno-cookie'] as string;
+  const bodyCookie = req.body?.sunoCookie as string;
+  const effectiveCookie = headerCookie || bodyCookie || settings.sunoCookie || process.env.SUNO_COOKIE || '';
+  if (effectiveCookie && effectiveCookie !== settings.sunoCookie) {
+    settings.sunoCookie = effectiveCookie;
+  }
+  return effectiveCookie;
+};
+
 // Helper to get initialized SunoClient
-const getSunoClient = async () => {
-  if (!settings.sunoCookie) {
+const getSunoClient = async (req?: express.Request) => {
+  const cookieToUse = req ? getEffectiveSunoCookie(req) : settings.sunoCookie;
+  if (!cookieToUse) {
     throw new Error('Suno Session Cookie is not configured in settings.');
   }
-  const client = new SunoClient({ cookieString: settings.sunoCookie });
+  const client = new SunoClient({ cookieString: cookieToUse });
   await client.init();
   return client;
 };
@@ -38,10 +61,12 @@ const getSunoClient = async () => {
 // Settings APIs
 // -------------------------------------------------------------
 
-app.get('/api/settings', (_req, res) => {
+app.get('/api/settings', (req, res) => {
+  const effectiveGemini = getEffectiveGeminiKey(req);
+  const effectiveSuno = getEffectiveSunoCookie(req);
   res.json({
-    geminiApiKey: settings.geminiApiKey,
-    sunoCookie: settings.sunoCookie,
+    geminiApiKey: effectiveGemini,
+    sunoCookie: effectiveSuno,
   });
 });
 
@@ -102,12 +127,13 @@ app.post('/api/gemini/curate-prompt', async (req, res) => {
     rawDescription,
   } = req.body;
 
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are an expert AI prompt engineer specializing in Suno AI Music Generation. 
 Suno accepts a "Style box" prompt that is strictly limited to 200 characters. 
@@ -306,6 +332,67 @@ ${previousLyrics || 'None — this is the first section.'}`;
   } catch (error: any) {
     console.error('Error in lyric-helper:', error);
     res.status(500).json({ error: error.message || 'Gemini lyrics helper failed.' });
+  }
+});
+
+// 2b. Generate Full Song endpoint
+app.post('/api/gemini/generate-full-song', async (req, res) => {
+  const { structure, topic, stylePrompt, targetSyllables, explicitMode, explicitFrequency } = req.body;
+
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
+    return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    const systemPrompt = `You are a world-class songwriting engine specializing in creating complete, multi-section song lyrics for Suno AI.
+
+STRUCTURE PRESET: ${structure || 'Pop/Rock'}
+TARGET SYLLABLE COUNT PER LINE: ~${targetSyllables || 8} syllables per line. Maintain consistent rhythm and flow!
+
+SUNO AI TIMING & PUNCTUATION RULES:
+- Commas (,): Force a quick breath / short half-beat pause in the line.
+- Periods (.): Create a clean definitive stop.
+- Ellipses (...): Create a long dramatic pause (vocals trail off).
+- Hyphens (-): Connect syllables or words to force a fast unbroken vocal flow (e.g. "to-night").
+- Double newlines: Create clear section separations.
+- Meta-tags: Use bracketed tags like [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], [Outro], and vocal delivery cues like [Belted], [Whispered], [Drop] where appropriate.
+
+ANTI-CORNY RULES:
+- Zero clichés (banned: cold as ice, cuts like a knife, fire/desire, heart/apart).
+- No Yoda speak or forced word order to make rhymes.
+- Show specific sensory scenes rather than telling raw melodrama.
+
+EXPLICIT MODE: ${explicitMode ? `ON (${explicitFrequency}% intensity - use raw, gritty profanity)` : 'OFF (Keep clean)'}
+
+OUTPUT RULES:
+- Output ONLY the raw complete lyrics with structural tags.
+- Do NOT output any preambles, explanations, or commentary.`;
+
+    const userMessage = `Write a complete structured song with these details:
+Song Theme / Narrative: ${topic || 'An uplifting story about overcoming obstacles'}
+Style Box Context: ${stylePrompt || 'Modern synthwave pop'}`;
+
+    const response = await generateContentWithFallback(ai, {
+      model: 'gemini-3.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: systemPrompt },
+            { text: userMessage },
+          ],
+        },
+      ],
+    });
+
+    const lyrics = response.text ? response.text.trim() : '';
+    res.json({ lyrics });
+  } catch (error: any) {
+    console.error('Error in generate-full-song:', error);
+    res.status(500).json({ error: error.message || 'Full song generation failed.' });
   }
 });
 

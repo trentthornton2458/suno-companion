@@ -178,6 +178,9 @@ export default function SongAnalyzer() {
 
       const res = await fetch('/api/gemini/analyze-song', {
         method: 'POST',
+        headers: {
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: formData,
       });
 
@@ -279,7 +282,10 @@ export default function SongAnalyzer() {
     try {
       const res = await fetch('/api/gemini/adjust-from-analysis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({ diagnostics, currentLyrics, currentStylePrompt })
       });
       const data = await res.json();

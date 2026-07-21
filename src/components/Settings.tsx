@@ -15,8 +15,12 @@ export default function Settings({ onSettingsChange }: SettingsProps) {
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
-        setGeminiKey(data.geminiApiKey || '');
-        setSunoCookie(data.sunoCookie || '');
+        const key = data.geminiApiKey || localStorage.getItem('gemini_api_key') || '';
+        const cookie = data.sunoCookie || localStorage.getItem('suno_cookie') || '';
+        setGeminiKey(key);
+        setSunoCookie(cookie);
+        if (key) localStorage.setItem('gemini_api_key', key);
+        if (cookie) localStorage.setItem('suno_cookie', cookie);
       })
       .catch(err => {
         console.error('Error fetching settings from backend:', err);
