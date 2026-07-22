@@ -65,7 +65,7 @@ const renderFormattedDiagnostics = (text: string): React.ReactNode => {
             marginTop: '2rem',
             marginBottom: '1.5rem',
             textAlign: 'center',
-            boxShadow: '0 0 15px rgba(0, 240, 255, 0.1)'
+            boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)'
           }}>
             <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 600 }}>
               Overall Production Rating
@@ -216,7 +216,6 @@ export default function SongAnalyzer() {
   };
 
   const generateAnalysisReport = () => {
-    // Generate beautiful dashboard visuals using randomized numbers, complementary to Gemini report
     const keys = ['C# Minor', 'F Major', 'A Major', 'G# Minor', 'E Minor', 'D Major'];
     const structures = [
       ['Intro (8s)', 'Verse 1 (24s)', 'Chorus (16s)', 'Verse 2 (24s)', 'Chorus (20s)', 'Guitar Solo (16s)', 'Outro (12s)'],
@@ -316,8 +315,12 @@ export default function SongAnalyzer() {
 
   return (
     <div>
-      <h1>Song Analyzer</h1>
-      <p className="subtitle">Upload audio masters to inspect mixing, dynamics, tempo, and vocal structures.</p>
+      <div className="page-header">
+        <div>
+          <h1>Acoustic & Production Analyzer</h1>
+          <p className="subtitle">Submit audio mixes to inspect loudness, frequency masks, master EQ, and arrangement peaks.</p>
+        </div>
+      </div>
 
       {!file && !analyzing && (
         <div 
@@ -327,10 +330,10 @@ export default function SongAnalyzer() {
           onClick={() => fileInputRef.current?.click()}
         >
           <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v-13.5m0 0L7.5 9.75M12 5.25L16.5 9.75M19.5 12l.008.008m-.008.008H12m0 0L7.5 16.5M12 12v6.75m6.75-9.75a9 9 0 11-13.5 0" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v12m0 0l-3-3m3 3l3-3m2-6a6 6 0 10-12 0h12z" />
           </svg>
-          <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem' }}>Drag & Drop Audio Master</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Supports WAV, MP3, M4A up to 9.5MB</p>
+          <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.3rem', color: 'white' }}>Drag & Drop Production Master</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.4' }}>Supports WAV, MP3, M4A up to 9.5MB for real-time AI mastering analysis</p>
           <input 
             type="file" 
             ref={fileInputRef} 
@@ -342,16 +345,18 @@ export default function SongAnalyzer() {
       )}
 
       {analyzing && (
-        <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))' }} />
           <div style={{
             position: 'relative',
             width: '80px',
             height: '80px',
             margin: '0 auto 2rem',
             borderRadius: '50%',
-            border: '4px solid rgba(255,255,255,0.05)',
+            border: '4px solid rgba(0, 240, 255, 0.05)',
             borderTopColor: 'var(--color-secondary)',
-            animation: 'spin 1s linear infinite'
+            animation: 'spin 0.8s linear infinite',
+            boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)'
           }} />
           <style>{`
             @keyframes spin {
@@ -359,26 +364,28 @@ export default function SongAnalyzer() {
               100% { transform: rotate(360deg); }
             }
           `}</style>
-          <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem', marginBottom: '0.5rem' }}>
-            Gemini Analyzing Audio Frequency & Transient Profiles
+          <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.3rem', marginBottom: '0.5rem', color: 'white' }}>
+            Decoding Transient & Frequency Profiles
           </h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Uploading bytes and processing with Gemini multimodal understanding...
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.75rem', fontSize: '0.95rem' }}>
+            Uploading master bytes and calculating multimodal spectral understanding with Gemini...
           </p>
           <div style={{
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: '440px',
             height: '6px',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: '3px',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '4px',
             margin: '0 auto',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            border: '1px solid rgba(255,255,255,0.02)'
           }}>
             <div style={{
               width: `${progress}%`,
               height: '100%',
               background: 'linear-gradient(to right, var(--color-primary), var(--color-secondary))',
-              transition: 'width 0.2s ease'
+              transition: 'width 0.2s ease',
+              boxShadow: '0 0 10px var(--color-secondary)'
             }} />
           </div>
         </div>
@@ -386,26 +393,38 @@ export default function SongAnalyzer() {
 
       {analysisData && (
         <div>
-          <div className="glass-card">
-            <div className="page-header">
+          <div className="glass-card" style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(to right, var(--color-secondary), var(--color-accent))' }} />
+            <div className="page-header" style={{ marginBottom: '1.5rem', marginTop: '0.5rem' }}>
               <div>
-                <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.35rem' }}>{file?.name}</h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>File Decoded Successfully • {(file!.size / (1024 * 1024)).toFixed(2)} MB</p>
+                <h2 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.4rem', color: 'white' }}>{file?.name}</h2>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Acoustic Master Decoded successfully • {(file!.size / (1024 * 1024)).toFixed(2)} MB</p>
               </div>
-              <button className="btn-secondary" onClick={handleReset}>Upload New Track</button>
+              <button
+                className="btn-secondary"
+                onClick={handleReset}
+                style={{ padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '14px', height: '14px' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Upload New Mix
+              </button>
             </div>
 
-            <div className="waveform-container" style={{ marginBottom: '1rem' }}>
-              {Array.from({ length: 48 }).map((_, idx) => {
-                const baseVal = Math.sin(idx * 0.15) * 40 + Math.cos(idx * 0.4) * 20 + 50;
-                const dynamicMultiplier = isPlaying ? Math.sin((currentTime * 10) + idx) * 0.25 + 0.75 : 0.6;
-                const h = Math.max(10, Math.min(100, baseVal * dynamicMultiplier));
+            <div className="waveform-container" style={{ marginBottom: '1.25rem' }}>
+              {Array.from({ length: 54 }).map((_, idx) => {
+                const baseVal = Math.sin(idx * 0.18) * 35 + Math.cos(idx * 0.35) * 25 + 50;
+                const dynamicMultiplier = isPlaying ? Math.sin((currentTime * 8) + idx) * 0.3 + 0.7 : 0.55;
+                const h = Math.max(8, Math.min(100, baseVal * dynamicMultiplier));
                 return (
                   <div 
                     key={idx} 
                     className="waveform-bar" 
                     style={{ 
                       height: `${h}%`,
+                      width: '4px',
+                      background: isPlaying ? 'linear-gradient(to top, var(--color-primary), var(--color-secondary))' : 'rgba(255,255,255,0.15)',
                       animationPlayState: isPlaying ? 'running' : 'paused'
                     }} 
                   />
@@ -413,34 +432,35 @@ export default function SongAnalyzer() {
               })}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 0.25rem' }}>
               <button 
                 onClick={() => setIsPlaying(!isPlaying)}
                 style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid var(--border-light)',
+                  background: isPlaying ? 'rgba(0, 240, 255, 0.08)' : 'rgba(255,255,255,0.03)',
+                  border: isPlaying ? '1px solid rgba(0, 240, 255, 0.3)' : '1px solid var(--border-light)',
                   borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
+                  width: '46px',
+                  height: '46px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
+                  color: isPlaying ? 'var(--color-secondary)' : 'white',
                   cursor: 'pointer',
-                  transition: 'var(--transition-fast)'
+                  transition: 'var(--transition-fast)',
+                  boxShadow: isPlaying ? '0 0 15px rgba(0, 240, 255, 0.2)' : 'none'
                 }}
               >
                 {isPlaying ? (
-                  <svg fill="currentColor" viewBox="0 0 24 24" style={{ width: '20px', height: '20px' }}>
+                  <svg fill="currentColor" viewBox="0 0 24 24" style={{ width: '18px', height: '18px' }}>
                     <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z" clipRule="evenodd" />
                   </svg>
                 ) : (
-                  <svg fill="currentColor" viewBox="0 0 24 24" style={{ width: '20px', height: '20px', marginLeft: '3px' }}>
+                  <svg fill="currentColor" viewBox="0 0 24 24" style={{ width: '18px', height: '18px', marginLeft: '3px' }}>
                     <path fillRule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clipRule="evenodd" />
                   </svg>
                 )}
               </button>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontFamily: 'Space Grotesk, monospace', fontWeight: 600 }}>
                 {formatTime(currentTime)} / 2:00
               </div>
             </div>
@@ -449,37 +469,62 @@ export default function SongAnalyzer() {
           <div className="analyzer-dashboard">
             <div className="analyzer-panel">
               <div className="panel-title">
-                <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px', color: 'var(--color-secondary)' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '20px', height: '20px', color: 'var(--color-secondary)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                 </svg>
                 Transient & Mix Balance
               </div>
               <div className="diagnostics-list">
                 <div className="diagnostic-item">
-                  <span className="diag-label">Estimated Tempo</span>
+                  <span className="diag-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Tempo Signature
+                  </span>
                   <span className="diag-value" style={{ color: 'var(--color-secondary)' }}>{analysisData.bpm} BPM</span>
                 </div>
                 <div className="diagnostic-item">
-                  <span className="diag-label">Estimated Musical Key</span>
+                  <span className="diag-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 0v15m0-15l-10.5 3m10.5-3V3m-10.5 6v12m0 0a3 3 0 11-6 0 3 3 0 016 0zm10.5 3a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Acoustic Key Pitch
+                  </span>
                   <span className="diag-value" style={{ color: 'var(--color-primary)' }}>{analysisData.key}</span>
                 </div>
                 <div className="diagnostic-item">
-                  <span className="diag-label">Integrated Loudness</span>
-                  <span className="diag-value">{analysisData.loudness}</span>
+                  <span className="diag-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75Z" />
+                    </svg>
+                    Integrated Volume
+                  </span>
+                  <span className="diag-value" style={{ color: 'white' }}>{analysisData.loudness}</span>
                 </div>
                 <div className="diagnostic-item">
-                  <span className="diag-label">Dynamic Range (Crest)</span>
-                  <span className="diag-value">{analysisData.dynamicRange}</span>
+                  <span className="diag-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '14px', height: '14px', color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                    </svg>
+                    Crest Factor
+                  </span>
+                  <span className="diag-value" style={{ color: 'white' }}>{analysisData.dynamicRange}</span>
                 </div>
                 <div style={{ marginTop: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                    <span>Vocals ({analysisData.vocals}%)</span>
-                    <span>Instruments ({analysisData.instruments}%)</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', fontWeight: 600 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-accent)' }} />
+                      Vocals ({analysisData.vocals}%)
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-secondary)' }} />
+                      Backing Master ({analysisData.instruments}%)
+                    </span>
                   </div>
-                  <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
-                    <div style={{ width: `${analysisData.vocals}%`, height: '100%', background: 'var(--color-accent)' }} />
-                    <div style={{ width: `${analysisData.instruments}%`, height: '100%', background: 'var(--color-secondary)' }} />
+                  <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', overflow: 'hidden', display: 'flex' }}>
+                    <div style={{ width: `${analysisData.vocals}%`, height: '100%', background: 'linear-gradient(to right, var(--color-accent), #ff509f)' }} />
+                    <div style={{ width: `${analysisData.instruments}%`, height: '100%', background: 'linear-gradient(to right, var(--color-secondary), #00b0ff)' }} />
                   </div>
                 </div>
               </div>
@@ -487,37 +532,38 @@ export default function SongAnalyzer() {
 
             <div className="analyzer-panel">
               <div className="panel-title">
-                <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px', color: 'var(--color-accent)' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v19m9-9H3" />
+                <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '20px', height: '20px', color: 'var(--color-accent)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5z" />
                 </svg>
-                Frequency Balance (EQ)
+                Spectral Equalization (EQ)
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                    <span className="diag-label">Sub-Bass & Bass (20Hz - 250Hz)</span>
-                    <span className="diag-value">{analysisData.frequencyBalance.bass}%</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>
+                    <span className="diag-label">Low Frequencies (20Hz - 250Hz)</span>
+                    <span className="diag-value" style={{ color: 'var(--color-secondary)' }}>{analysisData.frequencyBalance.bass}%</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${analysisData.frequencyBalance.bass}%`, height: '100%', background: 'var(--color-secondary)' }} />
-                  </div>
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                    <span className="diag-label">Mids & Vocal Core (250Hz - 4kHz)</span>
-                    <span className="diag-value">{analysisData.frequencyBalance.mids}%</span>
-                  </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${analysisData.frequencyBalance.mids}%`, height: '100%', background: 'var(--color-primary)' }} />
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: `${analysisData.frequencyBalance.bass}%`, height: '100%', background: 'linear-gradient(to right, #0090ff, var(--color-secondary))' }} />
                   </div>
                 </div>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                    <span className="diag-label">Presence & Air (4kHz - 20kHz)</span>
-                    <span className="diag-value">{analysisData.frequencyBalance.highs}%</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>
+                    <span className="diag-label">Mid Vocals Profile (250Hz - 4kHz)</span>
+                    <span className="diag-value" style={{ color: 'var(--color-primary)' }}>{analysisData.frequencyBalance.mids}%</span>
                   </div>
-                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                    <div style={{ width: `${analysisData.frequencyBalance.highs}%`, height: '100%', background: 'var(--color-accent)' }} />
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: `${analysisData.frequencyBalance.mids}%`, height: '100%', background: 'linear-gradient(to right, #6010ff, var(--color-primary))' }} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>
+                    <span className="diag-label">Brilliance & Air (4kHz - 20kHz)</span>
+                    <span className="diag-value" style={{ color: 'var(--color-accent)' }}>{analysisData.frequencyBalance.highs}%</span>
+                  </div>
+                  <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.04)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: `${analysisData.frequencyBalance.highs}%`, height: '100%', background: 'linear-gradient(to right, #d0006f, var(--color-accent))' }} />
                   </div>
                 </div>
               </div>
@@ -525,26 +571,29 @@ export default function SongAnalyzer() {
           </div>
 
           <div className="glass-card" style={{ marginTop: '2rem' }}>
-            <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.15rem', marginBottom: '1.25rem' }}>
-              Identified Structural Segments
+            <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.15rem', marginBottom: '1.25rem', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '18px', height: '18px', color: 'var(--color-secondary)' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5" />
+              </svg>
+              Composition Layout Sections
             </h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
               {analysisData.structure.map((segment: string, i: number) => (
                 <div 
                   key={i} 
                   style={{
-                    background: 'rgba(255,255,255,0.02)',
+                    background: 'rgba(255,255,255,0.015)',
                     border: '1px solid var(--border-light)',
-                    borderRadius: '10px',
-                    padding: '0.75rem 1.25rem',
+                    borderRadius: '12px',
+                    padding: '0.85rem 1.25rem',
                     textAlign: 'center',
-                    minWidth: '100px',
+                    minWidth: '110px',
                     flex: '1'
                   }}
                 >
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>BLOCK {i + 1}</div>
-                  <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>{segment.split(' ')[0]}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', marginTop: '0.25rem' }}>{segment.match(/\(([^)]+)\)/)?.[0] || ''}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem', fontWeight: 600 }}>BLOCK {i + 1}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: 'white' }}>{segment.split(' ')[0]}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', marginTop: '0.25rem', fontWeight: 500 }}>{segment.match(/\(([^)]+)\)/)?.[0] || ''}</div>
                 </div>
               ))}
             </div>
@@ -557,66 +606,89 @@ export default function SongAnalyzer() {
                 fontSize: '0.95rem',
                 color: 'var(--text-primary)',
                 padding: '1.5rem',
-                background: 'rgba(0,0,0,0.2)',
-                borderRadius: '12px',
+                background: 'rgba(7, 8, 14, 0.4)',
+                borderRadius: '16px',
                 border: '1px solid var(--border-light)',
                 fontFamily: 'Outfit, sans-serif'
               }}>
                 {renderFormattedDiagnostics(diagnostics)}
               </div>
 
-              <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
-                <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
-                  ✨ AI Song Fixer
+              <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '2rem' }}>
+                <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem', marginBottom: '0.5rem', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '20px', height: '20px', color: 'var(--color-primary)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.67 2.67 0 1113.5 17.25l-5.83-5.83m5.83 5.83l-5.83-5.83M11.42 8.83L17.25 3a2.67 2.67 0 11-3.75 3.75l-5.83 5.83M8.83 11.42L3 17.25a2.67 2.67 0 11-3.75-3.75l5.83-5.83M8.83 11.42l-5.83-5.83" />
+                  </svg>
+                  AI Production Alignment (Song Fixer)
                 </h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-                  Paste your current lyrics and style prompt below. AI will revise them based on the diagnostics above to fix timing, style drift, and vocal delivery.
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: '1.4' }}>
+                  Submit your current composition profile. Gemini will rewrite lyrics and adjust timing tags to fit the exact rhythmic peaks identified above.
                 </p>
                 
                 <div className="grid-song-fixer">
-                  <div>
-                    <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>Current Style Prompt</label>
-                    <textarea 
-                      value={currentStylePrompt}
-                      onChange={e => setCurrentStylePrompt(e.target.value)}
-                      placeholder="e.g. synthwave | dark | fast pacing..."
-                      style={{ background: 'rgba(255,255,255,0.03)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '80px', outline: 'none', resize: 'vertical' }}
-                    />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '0.4rem' }}>Current Suno Prompt Profile</label>
+                      <textarea
+                        value={currentStylePrompt}
+                        onChange={e => setCurrentStylePrompt(e.target.value)}
+                        placeholder="e.g. synthwave | female whispered vocal | fast tempo..."
+                        style={{ background: 'rgba(255,255,255,0.015)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '80px', outline: 'none', resize: 'vertical' }}
+                      />
+                    </div>
                     
-                    <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', marginTop: '1rem', display: 'block' }}>Current Lyrics</label>
-                    <textarea 
-                      value={currentLyrics}
-                      onChange={e => setCurrentLyrics(e.target.value)}
-                      placeholder="[Verse 1]\n..."
-                      style={{ background: 'rgba(255,255,255,0.03)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '300px', outline: 'none', resize: 'vertical' }}
-                    />
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '0.4rem' }}>Original Lyrics draft</label>
+                      <textarea
+                        value={currentLyrics}
+                        onChange={e => setCurrentLyrics(e.target.value)}
+                        placeholder="Paste your lyrical blueprint here..."
+                        style={{ background: 'rgba(255,255,255,0.015)', color: 'white', border: '1px solid var(--border-light)', borderRadius: '10px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '280px', outline: 'none', resize: 'vertical', fontFamily: 'monospace' }}
+                      />
+                    </div>
                     
                     <button 
                       className="btn-primary" 
-                      style={{ width: '100%', marginTop: '1rem', padding: '0.75rem' }}
+                      style={{ width: '100%', padding: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       onClick={handleFixSong}
                       disabled={isFixing}
                     >
-                      {isFixing ? 'AI is revising...' : '🛠️ Suggest Fixes'}
+                      {isFixing ? (
+                        <>
+                          <span className="spinner-mini" />
+                          Revising Cadence...
+                        </>
+                      ) : (
+                        <>
+                          <svg fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.67 2.67 0 1113.5 17.25l-5.83-5.83m5.83 5.83l-5.83-5.83M11.42 8.83L17.25 3a2.67 2.67 0 11-3.75 3.75l-5.83 5.83M8.83 11.42L3 17.25a2.67 2.67 0 11-3.75-3.75l5.83-5.83M8.83 11.42l-5.83-5.83" />
+                          </svg>
+                          Suggest Dynamic Fixes
+                        </>
+                      )}
                     </button>
                   </div>
 
-                  <div>
-                    <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block', color: 'var(--color-secondary)' }}>Revised Style Prompt</label>
-                    <textarea 
-                      value={revisedStylePrompt}
-                      readOnly
-                      placeholder="Revised style prompt will appear here..."
-                      style={{ background: 'rgba(0,0,0,0.2)', color: 'var(--color-secondary)', border: '1px dashed var(--color-secondary)', borderRadius: '8px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '80px', outline: 'none', resize: 'vertical' }}
-                    />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--color-secondary)' }}>Revised Style Prompt</label>
+                      <textarea
+                        value={revisedStylePrompt}
+                        readOnly
+                        placeholder="Engineered style recommendations will output here..."
+                        style={{ background: 'rgba(7, 8, 14, 0.5)', color: 'var(--color-secondary)', border: '1px dashed rgba(0, 240, 255, 0.3)', borderRadius: '10px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '80px', outline: 'none', resize: 'vertical' }}
+                      />
+                    </div>
                     
-                    <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', marginTop: '1rem', display: 'block', color: 'var(--color-secondary)' }}>Revised Lyrics</label>
-                    <textarea 
-                      value={revisedLyrics}
-                      readOnly
-                      placeholder="Revised lyrics will appear here..."
-                      style={{ background: 'rgba(0,0,0,0.2)', color: 'var(--color-secondary)', border: '1px dashed var(--color-secondary)', borderRadius: '8px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '300px', outline: 'none', resize: 'vertical' }}
-                    />
+                    <div className="input-group" style={{ marginBottom: 0 }}>
+                      <label style={{ fontSize: '0.8rem', marginBottom: '0.4rem', color: 'var(--color-secondary)' }}>Revised Rhythm Lyrics</label>
+                      <textarea
+                        value={revisedLyrics}
+                        readOnly
+                        placeholder="Rhythm-corrected lyrics will output here..."
+                        style={{ background: 'rgba(7, 8, 14, 0.5)', color: 'var(--color-secondary)', border: '1px dashed rgba(0, 240, 255, 0.3)', borderRadius: '10px', padding: '0.75rem', fontSize: '0.9rem', width: '100%', minHeight: '280px', outline: 'none', resize: 'vertical', fontFamily: 'monospace' }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
