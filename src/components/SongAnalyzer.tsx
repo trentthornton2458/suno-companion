@@ -153,7 +153,10 @@ export default function SongAnalyzer() {
   };
 
   const processFile = async (selectedFile: File) => {
-    if (!selectedFile.type.startsWith('audio/')) {
+    const fileExt = selectedFile.name.split('.').pop()?.toLowerCase() || '';
+    const isAudio = selectedFile.type.startsWith('audio/') ||
+                    ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'].includes(fileExt);
+    if (!isAudio) {
       alert('Please upload an audio file (.mp3, .wav, .m4a, etc.)');
       return;
     }
@@ -335,7 +338,7 @@ export default function SongAnalyzer() {
             type="file" 
             ref={fileInputRef} 
             onChange={handleFileChange} 
-            accept="audio/*" 
+            accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
             style={{ display: 'none' }} 
           />
         </div>
