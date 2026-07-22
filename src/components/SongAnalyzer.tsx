@@ -319,7 +319,7 @@ export default function SongAnalyzer() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75v-13.5m0 0L7.5 9.75M12 5.25L16.5 9.75M19.5 12l.008.008m-.008.008H12m0 0L7.5 16.5M12 12v6.75m6.75-9.75a9 9 0 11-13.5 0" />
           </svg>
           <h3 style={{ fontFamily: 'Space Grotesk, sans-serif', fontSize: '1.25rem' }}>Drag & Drop Audio Master</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Supports WAV, MP3, M4A up to 50MB</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Supports WAV, MP3, M4A up to 18MB</p>
           <input 
             type="file" 
             ref={fileInputRef} 

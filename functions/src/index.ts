@@ -80,38 +80,83 @@ app.post('/api/settings', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// Gemini APIs
+// Gemini APIs & Model Cascade
 // -------------------------------------------------------------
 
-// Helper function to call generateContent with retry mechanism
+const DEFAULT_MODEL_CASCADE = [
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-2.5-flash',
+  'gemini-1.5-flash',
+];
+
+// Helper function to normalize audio mime types for Gemini API inlineData
+function normalizeAudioMimeType(mimetype: string, originalname: string): string {
+  const lowerMime = (mimetype || '').toLowerCase();
+  const lowerName = (originalname || '').toLowerCase();
+
+  if (lowerMime.includes('wav') || lowerName.endsWith('.wav')) return 'audio/wav';
+  if (lowerMime.includes('mp3') || lowerMime.includes('mpeg') || lowerName.endsWith('.mp3')) return 'audio/mp3';
+  if (lowerMime.includes('m4a') || lowerMime.includes('mp4') || lowerName.endsWith('.m4a') || lowerName.endsWith('.mp4')) return 'audio/mp4';
+  if (lowerMime.includes('aac') || lowerName.endsWith('.aac')) return 'audio/aac';
+  if (lowerMime.includes('ogg') || lowerName.endsWith('.ogg')) return 'audio/ogg';
+  if (lowerMime.includes('flac') || lowerName.endsWith('.flac')) return 'audio/flac';
+
+  return 'audio/mp3';
+}
+
+// Helper function to call generateContent with automatic model failover cascade (3.6-flash -> 3.5-flash -> 2.5-flash -> 1.5-flash)
 async function generateContentWithFallback(ai: any, options: any) {
-  const model = options.model || 'gemini-3.5-flash';
-  options.model = model;
-  
-  const maxAttempts = 3;
+  let modelsToTry = [...DEFAULT_MODEL_CASCADE];
+
+  if (options.model && !modelsToTry.includes(options.model)) {
+    modelsToTry.unshift(options.model);
+  } else if (options.model && options.model !== modelsToTry[0]) {
+    modelsToTry = [options.model, ...modelsToTry.filter(m => m !== options.model)];
+  }
+
   let lastError: any = null;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      if (attempt > 1) {
-        console.log(`Retry attempt ${attempt - 1} of ${maxAttempts - 1} for model ${model} after delay...`);
-      } else {
-        console.log(`Attempting Gemini generation with model: ${model}`);
-      }
-      return await ai.models.generateContent(options);
-    } catch (error: any) {
-      lastError = error;
-      console.warn(`Attempt ${attempt} failed with error:`, error.message || error);
-      
-      // Delay 1.5 seconds before retrying if we have remaining attempts
-      if (attempt < maxAttempts) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+  for (const model of modelsToTry) {
+    console.log(`[Gemini Cascade] Attempting generation with model: ${model}`);
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const payload = {
+          ...options,
+          model: model,
+        };
+        const response = await ai.models.generateContent(payload);
+        console.log(`[Gemini Cascade] Success with model: ${model}`);
+        return response;
+      } catch (error: any) {
+        lastError = error;
+        const errorMsg = (error.message || '').toLowerCase();
+        const status = error.status || error.statusCode;
+
+        console.warn(`[Gemini Cascade] Model ${model} (Attempt ${attempt}/2) failed: ${error.message || error}`);
+
+        const isNonRetryable = 
+          errorMsg.includes('not found') || 
+          errorMsg.includes('not supported') || 
+          errorMsg.includes('invalid') || 
+          errorMsg.includes('quota') ||
+          status === 404 || 
+          status === 400 || 
+          status === 403;
+
+        if (isNonRetryable || attempt === 2) {
+          console.log(`[Gemini Cascade] Failing over from ${model} to next model in cascade...`);
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   }
 
-  console.error(`All ${maxAttempts} attempts for model ${model} failed.`);
-  throw lastError;
+  console.error(`[Gemini Cascade] All model fallbacks failed: ${modelsToTry.join(' -> ')}`);
+  throw lastError || new Error(`Gemini generation failed on all models (${modelsToTry.join(' -> ')}).`);
 }
 
 // 1. Curate prompt endpoint
@@ -158,7 +203,7 @@ Follow these strict rules:
 - Raw Description: ${rawDescription || 'N/A'}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -182,12 +227,13 @@ Follow these strict rules:
 app.post('/api/gemini/lyric-helper', async (req, res) => {
   const { prompt, previousLyrics, section, deliveryCue, sectionPrompt, stylePrompt, explicitMode, explicitFrequency } = req.body;
 
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are a world-class professional lyricist and recording artist collaborating on a Suno AI track. Your lyrics are sharp, authentic, and emotionally grounded. You write like a veteran — not like someone trying to sound like a songwriter.
 
@@ -315,7 +361,7 @@ Previous lyrics (your section must flow from this — match the established rhyt
 ${previousLyrics || 'None — this is the first section.'}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -376,7 +422,7 @@ Song Theme / Narrative: ${topic || 'An uplifting story about overcoming obstacle
 Style Box Context: ${stylePrompt || 'Modern synthwave pop'}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -398,7 +444,8 @@ Style Box Context: ${stylePrompt || 'Modern synthwave pop'}`;
 
 // 3. Analyze Song endpoint (audio diagnostics using Gemini audio inputs)
 app.post('/api/gemini/analyze-song', upload.single('audio'), async (req, res) => {
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
@@ -406,8 +453,13 @@ app.post('/api/gemini/analyze-song', upload.single('audio'), async (req, res) =>
     return res.status(400).json({ error: 'No audio file uploaded for analysis.' });
   }
 
+  if (req.file.size > 18 * 1024 * 1024) {
+    return res.status(400).json({ error: 'Audio file exceeds the 18MB size limit for inline AI analysis. Please upload a shorter clip or compressed MP3/M4A.' });
+  }
+
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
+    const mimeType = normalizeAudioMimeType(req.file.mimetype, req.file.originalname);
 
     const promptText = `You are an elite, multi-platinum music producer, veteran audio engineer, and ruthless music critic. 
 Analyze this uploaded audio track (a song, demo, or vocal cut) with professional scrutiny. 
@@ -451,7 +503,7 @@ You MUST structure your response EXACTLY matching this markdown template. Do not
 **Market Readiness Justification**: [Give a detailed professional reasoning for why you gave the track this score, and what the single biggest bottleneck is preventing it from being 100/100.]`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -460,7 +512,7 @@ You MUST structure your response EXACTLY matching this markdown template. Do not
             {
               inlineData: {
                 data: req.file.buffer.toString('base64'),
-                mimeType: req.file.mimetype,
+                mimeType: mimeType,
               },
             },
           ],
@@ -480,12 +532,13 @@ You MUST structure your response EXACTLY matching this markdown template. Do not
 app.post('/api/gemini/adjust-from-analysis', async (req, res) => {
   const { diagnostics, currentLyrics, currentStylePrompt } = req.body;
 
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are a professional songwriter and music producer.
 You have been provided with diagnostics from an audio analysis of a Suno AI generated song.
@@ -512,7 +565,7 @@ Current Style Prompt:
 ${currentStylePrompt || 'None'}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -525,10 +578,10 @@ ${currentStylePrompt || 'None'}`;
     });
 
     let rawText = response.text ? response.text.trim() : '';
-    if (rawText.startsWith('\`\`\`json')) {
-      rawText = rawText.replace(/^\`\`\`json\n/, '').replace(/\n\`\`\`$/, '');
-    } else if (rawText.startsWith('\`\`\`')) {
-      rawText = rawText.replace(/^\`\`\`\n/, '').replace(/\n\`\`\`$/, '');
+    if (rawText.startsWith('```json')) {
+      rawText = rawText.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (rawText.startsWith('```')) {
+      rawText = rawText.replace(/^```\n/, '').replace(/\n```$/, '');
     }
     
     const result = JSON.parse(rawText);
@@ -543,12 +596,13 @@ ${currentStylePrompt || 'None'}`;
 app.post('/api/gemini/make-explicit', async (req, res) => {
   const { lyrics, stylePrompt } = req.body;
 
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are a professional songwriting assistant. Your task is to take the provided lyrics and make them EXPLICIT.
 Add profanity, grit, raw emotional energy, and mature themes where appropriate. Do not make it cartoonish or silly; make it sound authentic, gritty, and raw.
@@ -569,7 +623,7 @@ Output ONLY the revised explicit lyrics. Do not include any explanations, preamb
     const userMessage = `Current Lyrics:\n${lyrics}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
@@ -593,12 +647,13 @@ Output ONLY the revised explicit lyrics. Do not include any explanations, preamb
 app.post('/api/gemini/analyze-lyrics', async (req, res) => {
   const { lyrics, stylePrompt } = req.body;
 
-  if (!settings.geminiApiKey) {
+  const apiKey = getEffectiveGeminiKey(req);
+  if (!apiKey) {
     return res.status(400).json({ error: 'Gemini API Key is not configured. Please add it in settings.' });
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are a professional lyric analyst and songwriting coach.
 Analyze the provided lyrics against the style prompt and the anti-corny guidelines:
@@ -644,7 +699,7 @@ Return ONLY a JSON object in this exact format (no markdown code blocks, just ra
     const userMessage = `Lyrics to analyze:\n${lyrics}\n\nStyle Context: ${stylePrompt || 'Not specified'}`;
 
     const response = await generateContentWithFallback(ai, {
-      model: 'gemini-3.5-flash',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
