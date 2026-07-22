@@ -453,8 +453,8 @@ app.post('/api/gemini/analyze-song', upload.single('audio'), async (req, res) =>
     return res.status(400).json({ error: 'No audio file uploaded for analysis.' });
   }
 
-  if (req.file.size > 18 * 1024 * 1024) {
-    return res.status(400).json({ error: 'Audio file exceeds the 18MB size limit for inline AI analysis. Please upload a shorter clip or compressed MP3/M4A.' });
+  if (req.file.size > 9.5 * 1024 * 1024) {
+    return res.status(400).json({ error: 'Audio file exceeds the 9.5MB size limit for inline AI analysis. Please upload a shorter clip or compressed MP3/M4A.' });
   }
 
   try {

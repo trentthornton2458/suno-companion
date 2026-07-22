@@ -1144,7 +1144,7 @@ h1 {
 }
 
 /* Mobile Media Queries (screens <= 768px) */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   h1 {
     font-size: 1.75rem !important;
     letter-spacing: -0.5px;

@@ -50,7 +50,7 @@ export default function App() {
     const checkMobile = () => {
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
       const isMobileUA = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-      const isMobileWidth = window.innerWidth <= 768;
+      const isMobileWidth = window.innerWidth <= 1024;
       setIsMobile(isMobileUA || isMobileWidth);
     };
 
