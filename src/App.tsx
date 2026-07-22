@@ -22,7 +22,12 @@ export default function App() {
     let suno = !!localStorage.getItem('suno_cookie');
 
     try {
-      const res = await fetch('/api/settings');
+      const res = await fetch('/api/settings', {
+        headers: {
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || '',
+          'x-suno-cookie': localStorage.getItem('suno_cookie') || '',
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.geminiApiKey) {

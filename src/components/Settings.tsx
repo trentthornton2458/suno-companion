@@ -12,7 +12,12 @@ export default function Settings({ onSettingsChange }: SettingsProps) {
   const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
-    fetch('/api/settings')
+    fetch('/api/settings', {
+      headers: {
+        'x-gemini-api-key': localStorage.getItem('gemini_api_key') || '',
+        'x-suno-cookie': localStorage.getItem('suno_cookie') || '',
+      }
+    })
       .then(res => res.json())
       .then(data => {
         const key = data.geminiApiKey || localStorage.getItem('gemini_api_key') || '';

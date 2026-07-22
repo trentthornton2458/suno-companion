@@ -1,0 +1,21 @@
+
+> suno-companion@1.0.0 dev
+> concurrently "npm run dev:backend" "npm run dev:frontend"
+
+[0]
+[0] > suno-companion@1.0.0 dev:backend
+[0] > tsx watch server/server.ts
+[0]
+[1]
+[1] > suno-companion@1.0.0 dev:frontend
+[1] > vite
+[1]
+[1]
+[1]   VITE v5.4.21  ready in 324 ms
+[1]
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: use --host to expose
+[0] Express server is running on http://localhost:3005
+[0] Settings saved to disk
+[0] Settings saved to disk
+[0] Settings saved to disk

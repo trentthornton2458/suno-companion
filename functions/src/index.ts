@@ -181,13 +181,13 @@ app.post('/api/gemini/curate-prompt', async (req, res) => {
     const ai = new GoogleGenAI({ apiKey });
 
     const systemPrompt = `You are an expert AI prompt engineer specializing in Suno AI Music Generation. 
-Suno accepts a "Style box" prompt that is strictly limited to 200 characters. 
+Suno accepts a "Style box" prompt that is strictly limited to 120 characters.
 Your goal is to curate a highly optimized, high-density style prompt using the inputs provided.
 
 Follow these strict rules:
 1. FRONT-LOAD the genre/style in position 1.
 2. Separate distinct elements/layers using pipe character " | " or commas.
-3. Keep the total output length under 200 characters. Do not output anything other than the final prompt.
+3. Keep the total output length under 120 characters. Do not output anything other than the final prompt.
 4. Convert descriptors into effective musical tags (e.g. use "raw vocals" or "acoustic recording" instead of "natural vocals" to avoid robotic tones).
 5. Include a specific numeric BPM tag if provided (e.g. "120 BPM").
 6. The standard structure is: [Genre] | [Mood] | [Instrumentation] | [Vocal Direction] | [Modifiers] | [BPM]`;
@@ -547,7 +547,7 @@ Your task is to adjust the current lyrics and style prompt to fix the issues ide
 Consider these professional songwriting principles:
 - Fix any robotic vocals or unnatural phrasing by adjusting syllables or adding conversational flow.
 - Add vocal delivery cues or structural tags (e.g. [Music Pause], [Build], [Drop]) to address structural issues or style drift.
-- Optimize the style prompt (keep under 200 chars) to fix mixing/style issues mentioned in the diagnostics.
+- Optimize the style prompt (keep under 120 chars) to fix mixing/style issues mentioned in the diagnostics.
 
 Return ONLY a JSON object with this exact format (no markdown code blocks, just raw JSON string):
 {
@@ -734,7 +734,7 @@ Return ONLY a JSON object in this exact format (no markdown code blocks, just ra
 app.post('/api/suno/generate', async (req, res) => {
   const { prompt, make_instrumental, model } = req.body;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const clips = await client.generate(prompt, !!make_instrumental, model);
     res.json(clips);
   } catch (error: any) {
@@ -747,7 +747,7 @@ app.post('/api/suno/generate', async (req, res) => {
 app.post('/api/suno/custom_generate', async (req, res) => {
   const { prompt, tags, title, make_instrumental, model, negative_tags } = req.body;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const clips = await client.customGenerate({
       prompt: prompt || '',
       tags: tags || '',
@@ -767,7 +767,7 @@ app.post('/api/suno/custom_generate', async (req, res) => {
 app.post('/api/suno/extend_audio', async (req, res) => {
   const { clip_id, continue_at, prompt, tags, title, negative_tags, make_instrumental, model } = req.body;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const clips = await client.extendAudio({
       clipId: clip_id,
       continueAt: Number(continue_at),
@@ -789,7 +789,7 @@ app.post('/api/suno/extend_audio', async (req, res) => {
 app.post('/api/suno/concat', async (req, res) => {
   const { clip_id } = req.body;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const result = await client.concatenate(clip_id);
     res.json(result);
   } catch (error: any) {
@@ -802,7 +802,7 @@ app.post('/api/suno/concat', async (req, res) => {
 app.post('/api/suno/generate_stems', async (req, res) => {
   const { clip_id } = req.body;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const result = await client.generateStems(clip_id);
     res.json(result);
   } catch (error: any) {
@@ -812,9 +812,9 @@ app.post('/api/suno/generate_stems', async (req, res) => {
 });
 
 // 6. Quota check limit endpoint
-app.get('/api/suno/get_limit', async (_req, res) => {
+app.get('/api/suno/get_limit', async (req, res) => {
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const limit = await client.getLimit();
     res.json(limit);
   } catch (error: any) {
@@ -832,7 +832,7 @@ app.get('/api/suno/get', async (req, res) => {
   const page = pageString ? Number(pageString) : undefined;
 
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const clips = await client.getFeed(songIds, page);
     res.json(clips);
   } catch (error: any) {
@@ -845,7 +845,7 @@ app.get('/api/suno/get', async (req, res) => {
 app.get('/api/suno/clip/:id', async (req, res) => {
   const clipId = req.params.id;
   try {
-    const client = await getSunoClient();
+    const client = await getSunoClient(req);
     const clip = await client.getClip(clipId);
     res.json(clip);
   } catch (error: any) {

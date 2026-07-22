@@ -316,7 +316,11 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     try {
       const res = await fetch('/api/suno/custom_generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-suno-cookie': localStorage.getItem('suno_cookie') || '',
+          'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+        },
         body: JSON.stringify({
           prompt: lyrics,
           tags: customPromptText || stackedPrompt,
@@ -348,10 +352,20 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     
     pollingIntervalRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/suno/get?ids=${clipIds.join(',')}`);
+        const res = await fetch(`/api/suno/get?ids=${clipIds.join(',')}`, {
+          headers: {
+            'x-suno-cookie': localStorage.getItem('suno_cookie') || '',
+            'x-gemini-api-key': localStorage.getItem('gemini_api_key') || ''
+          }
+        });
         if (!res.ok) return;
 
         const updatedClips = await res.json();
+        if (!Array.isArray(updatedClips)) {
+          console.warn('Polling expected array of clips but got:', updatedClips);
+          return;
+        }
+
         setGenerations(prev => {
           return prev.map(clip => {
             const match = updatedClips.find((uc: any) => uc.id === clip.id);
