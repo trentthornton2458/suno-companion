@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { analyzeLyricMeter } from '../utils/lyric-meter-utils';
 
 const LYRIC_PRESETS = [
@@ -306,7 +306,10 @@ export default function SongwritingAssistant({ initialStylePrompt = '', initialB
     }
   };
 
-  const meterAnalysis = analyzeLyricMeter(lyrics);
+  // PERFORMANCE OPTIMIZATION (Bolt ⚡): Memoize lyric meter analysis results.
+  // This prevents running complex full-text parsing, regex transformations, and metric calculations
+  // on unrelated state updates like slider movements, style engineering, modal toggles, title input, or polling interval triggers.
+  const meterAnalysis = useMemo(() => analyzeLyricMeter(lyrics), [lyrics]);
 
   const handleGenerateSong = async () => {
     setGeneratingSong(true);

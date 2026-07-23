@@ -30,13 +30,23 @@ const RHYME_COLORS = [
   '#8b5cf6', // H: Violet
 ];
 
+// PERFORMANCE OPTIMIZATION (Bolt ⚡):
+// Caches for words and lines to eliminate redundant regex checks, lower-casing, splits, and loops.
+// This scales UI responsiveness O(1) for repeated words or unchanged lines during active typing.
+const syllableWordCache = new Map<string, number>();
+const syllableLineCache = new Map<string, number>();
+const endRhymeKeyCache = new Map<string, string>();
+
 /**
- * Heuristic syllable counter for English words
+ * Heuristic syllable counter for English words (Optimized with a global cache)
  */
 export function countSyllablesInWord(word: string): number {
   const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
   if (!cleanWord) return 0;
   if (cleanWord.length <= 3) return 1;
+
+  const cached = syllableWordCache.get(cleanWord);
+  if (cached !== undefined) return cached;
 
   let count = 0;
   const processed = cleanWord
@@ -56,40 +66,62 @@ export function countSyllablesInWord(word: string): number {
     count++;
   }
 
-  return Math.max(1, count);
+  const result = Math.max(1, count);
+  syllableWordCache.set(cleanWord, result);
+  return result;
 }
 
 /**
- * Counts total syllables in a line of lyrics, excluding bracketed Suno tags
+ * Counts total syllables in a line of lyrics, excluding bracketed Suno tags (Optimized with a global cache)
  */
 export function countLineSyllables(line: string): number {
   // Strip out bracketed tags like [Verse], [Chorus], [Whispered], (Synth Intro)
   const cleanLine = line.replace(/\[.*?\]|\(.*?\)/g, '').trim();
   if (!cleanLine) return 0;
 
+  const cached = syllableLineCache.get(cleanLine);
+  if (cached !== undefined) return cached;
+
   const words = cleanLine.split(/\s+/);
-  return words.reduce((total, word) => total + countSyllablesInWord(word), 0);
+  const result = words.reduce((total, word) => total + countSyllablesInWord(word), 0);
+
+  syllableLineCache.set(cleanLine, result);
+  return result;
 }
 
 /**
- * Extracts phonetic ending key for rhyme matching
+ * Extracts phonetic ending key for rhyme matching (Optimized with a global cache)
  */
 export function extractEndRhymeKey(line: string): string {
   const cleanLine = line.replace(/\[.*?\]|\(.*?\)/g, '').trim();
   if (!cleanLine) return '';
 
+  const cached = endRhymeKeyCache.get(cleanLine);
+  if (cached !== undefined) return cached;
+
   const words = cleanLine.split(/\s+/).filter(w => w.replace(/[^a-zA-Z]/g, '').length > 0);
-  if (words.length === 0) return '';
+  if (words.length === 0) {
+    endRhymeKeyCache.set(cleanLine, '');
+    return '';
+  }
 
   const lastWord = words[words.length - 1].toLowerCase().replace(/[^a-z]/g, '');
-  if (!lastWord) return '';
+  if (!lastWord) {
+    endRhymeKeyCache.set(cleanLine, '');
+    return '';
+  }
 
+  let result = '';
   // Extract trailing sound pattern (last 2-3 chars or vowel-consonant tail)
   const match = lastWord.match(/[aeiouy][a-z]*$/);
   if (match) {
-    return match[0];
+    result = match[0];
+  } else {
+    result = lastWord.slice(-3);
   }
-  return lastWord.slice(-3);
+
+  endRhymeKeyCache.set(cleanLine, result);
+  return result;
 }
 
 /**
